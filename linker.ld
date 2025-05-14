@@ -1,12 +1,31 @@
+ENTRY(kernel_main)
 
-ENTRY(_start)
-SECTIONS {
+SECTIONS
+{
     . = 1M;
-    .text : {
+
+    .multiboot :
+    {
         *(.multiboot)
-        *(.text*)
     }
-    .rodata : { *(.rodata*) }
-    .data : { *(.data*) }
-    .bss : { *(.bss*) }
+
+    .text :
+    {
+        *(.text)
+    }
+
+    .rodata :
+    {
+        *(.rodata)
+    }
+
+    .data :
+    {
+        *(.data)
+    }
+
+    .bss :
+    {
+        *(.bss COMMON)
+    }
 }

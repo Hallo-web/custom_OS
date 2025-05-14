@@ -363,7 +363,7 @@ void process_command()
     command_length = 0;
 
     // Print prompt
-    terminal_writestring("\nosiris> ");
+    terminal_writestring("\n>> ");
 }
 
 // Handle keyboard input
@@ -414,7 +414,8 @@ void init_terminal_interface(void)
     terminal_writestring("O.S.I.R.I.S Terminal v1.0\n");
     terminal_writestring("Copyright (c) 2025 OSIRIS OS Project\n");
     terminal_writestring("Type 'help' for available commands.\n\n");
-    terminal_writestring("O.S.I.R.I.S> ");
+    terminal_writestring("===============O.S.I.R.I.S===============\n");
+    terminal_writestring(">> ");
 
     // Reset command buffer
     command_length = 0;

@@ -225,7 +225,7 @@ void show_boot_sequence()
 {
     terminal_initialize();
     terminal_writestring("O.S.I.R.I.S Boot Sequence v1.0\n");
-    terminal_writestring("----------------------------\n\n");
+    terminal_writestring("------------------------------\n\n");
 
     const char *messages[] = {
         "Initializing hardware...",

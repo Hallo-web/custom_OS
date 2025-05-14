@@ -325,6 +325,8 @@ void process_command()
         terminal_writestring("  logo     - Display the OSIRIS logo\n");
         terminal_writestring("  about    - Show information about OSIRIS\n");
         terminal_writestring("  reboot   - Simulate system reboot\n");
+        terminal_writestring("  lock     - switch to the lock screen\n"); // TODO fix this
+        terminal_writestring("  exit     - Exit\n");                      // TODO add this
     }
     else if (strcmp(command_buffer, "clear") == 0)
     {
@@ -351,6 +353,35 @@ void process_command()
         delay(2000);
         init_terminal_interface();
         return;
+    }
+    else if (strcmp(command_buffer, "lock") == 0)
+    {
+
+        while (get_keyboard_input() == 0)
+        {
+            delay(2000);
+            draw_logo();
+            terminal_writestring("\n\n\n\n\n\nPress X + ENTER to login...\n>> ");
+        }
+
+        if (get_keyboard_input("x"))
+        {
+            terminal_writestring("\nLogging into O.S.I.R.I.S...\n");
+            delay(1000);
+            show_boot_sequence();
+            init_terminal_interface();
+            return;
+        }
+        else
+        {
+            terminal_writestring("wrong! Try again!");
+            // make a wrong login screen
+        }
+        return;
+    }
+    else if (strcmp(command_buffer, "exit") == 0)
+    {
+        // we need to quit the system here
     }
     else
     {

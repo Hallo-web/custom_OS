@@ -347,6 +347,7 @@ void process_command()
         terminal_writestring("\nRebooting system...\n");
         delay(1000);
         show_boot_sequence();
+        draw_logo();
         init_terminal_interface();
         return;
     }

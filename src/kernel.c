@@ -348,6 +348,7 @@ void process_command()
         delay(1000);
         show_boot_sequence();
         draw_logo();
+        delay(2000);
         init_terminal_interface();
         return;
     }
@@ -413,7 +414,7 @@ void init_terminal_interface(void)
     terminal_writestring("O.S.I.R.I.S Terminal v1.0\n");
     terminal_writestring("Copyright (c) 2025 OSIRIS OS Project\n");
     terminal_writestring("Type 'help' for available commands.\n\n");
-    terminal_writestring("osiris> ");
+    terminal_writestring("O.S.I.R.I.S> ");
 
     // Reset command buffer
     command_length = 0;

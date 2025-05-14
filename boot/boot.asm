@@ -1,30 +1,37 @@
 ; Multiboot header for GRUB
+MBALIGN     equ  1 << 0
+MEMINFO     equ  1 << 1
+FLAGS       equ  MBALIGN | MEMINFO
+MAGIC       equ  0x1BADB002
+CHECKSUM    equ -(MAGIC + FLAGS)
+
 section .multiboot
 align 4
-    dd 0x1BADB002         ; magic number
-    dd 0x00               ; flags
-    dd -(0x1BADB002)      ; checksum
+    dd MAGIC
+    dd FLAGS
+    dd CHECKSUM
 
-; Set up the stack
+; Reserve a stack for the initial thread
 section .bss
 align 16
 stack_bottom:
-    resb 16384            ; Reserve 16 KiB for stack
+    resb 16384 ; 16 KiB
 stack_top:
 
+; The kernel entry point
 section .text
 global _start
-extern kernel_main        ; Defined in kernel.c
+extern kernel_main
 
 _start:
-    ; Set up the stack
-    mov esp, stack_top
-    
-    ; Call the kernel main function
+    mov esp, stack_top  ; Set up the stack pointer
+
+    ; Call the kernel
+    extern kernel_main
     call kernel_main
-    
-    ; If kernel returns, halt the CPU
-    cli                   ; Disable interrupts
+
+    ; Enter an infinite loop if the kernel returns
+    cli                  ; Disable interrupts
 .hang:
-    hlt                   ; Halt the CPU
-    jmp .hang             ; Jump to .hang if hlt doesn't work
+    hlt                  ; Halt the CPU
+    jmp .hang            ; Just in case

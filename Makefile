@@ -5,8 +5,11 @@ QEMU = qemu-system-x86_64
 CC = gcc
 LD = ld
 AS = nasm
-CFLAGS = -ffreestanding -m32 -O2 -Wall -Wextra
-LDFLAGS = -T linker.ld -m elf_i386
+CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -m32 -g
+LDFLAGS = -T linker.ld -nostdlib -m elf_i386
+
+# Object files
+OBJS = boot.o kernel.o
 
 all: $(ISO)
 
@@ -19,8 +22,8 @@ kernel.o: src/kernel.c
 	$(CC) $(CFLAGS) -c src/kernel.c -o kernel.o
 
 # Create the binary from object files
-kernel.bin: boot.o kernel.o
-	$(LD) $(LDFLAGS) -o kernel.bin boot.o kernel.o
+kernel.bin: $(OBJS)
+	$(LD) $(LDFLAGS) -o kernel.bin $(OBJS)
 
 # Create ISO image
 $(ISO): kernel.bin
@@ -36,7 +39,7 @@ $(ISO): kernel.bin
 
 # Clean up object files and binaries
 clean:
-	rm -rf *.o *.bin isodir *.iso
+	rm -rf *.o *.bin isodir $(ISO)
 
 # Run the ISO with QEMU
 run: $(ISO)
@@ -44,3 +47,5 @@ run: $(ISO)
 
 # Clean, rebuild, and run the project
 test: clean all run
+
+.PHONY: all clean run test

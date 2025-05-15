@@ -8,8 +8,8 @@ AS = nasm
 CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -m32 -g -I./src
 LDFLAGS = -T linker.ld -nostdlib -m elf_i386
 
-# Object files
-OBJS = boot.o kernel.o vga.o
+# Object files - added string.o
+OBJS = boot.o kernel.o vga.o string.o
 
 all: $(ISO)
 
@@ -24,6 +24,10 @@ kernel.o: src/kernel.c
 # Compile the VGA source file
 vga.o: src/vga.c
 	$(CC) $(CFLAGS) -c src/vga.c -o vga.o
+
+# Compile the string utility source file
+string.o: src/string.c
+	$(CC) $(CFLAGS) -c src/string.c -o string.o
 
 # Create the binary from object files
 kernel.bin: $(OBJS)

@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h> // Added for bool type used in some functions
 
 // String comparison
 int strcmp(const char *s1, const char *s2);

@@ -7,11 +7,11 @@ static uint16_t *const VGA_MEMORY = (uint16_t *)0xB8000;
 static const int VGA_WIDTH = 80;
 static const int VGA_HEIGHT = 25;
 
-// Terminal state
-static int terminal_row;
-static int terminal_column;
-static uint8_t terminal_color;
-static uint16_t *terminal_buffer;
+// Terminal state variables exposed for use in kernel.c
+int terminal_row;
+int terminal_column;
+uint8_t terminal_color;
+uint16_t *terminal_buffer;
 
 // Create a VGA entry color
 uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)

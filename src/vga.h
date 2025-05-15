@@ -25,6 +25,18 @@ enum vga_color
     VGA_COLOR_YELLOW = 16,
 };
 
+// External variables (exposed for kernel.c)
+extern int terminal_row;
+extern int terminal_column;
+extern uint8_t terminal_color;
+extern uint16_t *terminal_buffer;
+
+// Create a VGA entry color
+uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg);
+
+// Create a VGA entry (character + color)
+uint16_t vga_entry(unsigned char c, uint8_t color);
+
 // Initialize the terminal
 void terminal_initialize(void);
 

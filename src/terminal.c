@@ -820,4 +820,408 @@ void display_disk_usage(void)
 {
     // Simulated disk usage
     uint8_t title_color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK);
-    uint8_t text_color = vga_entry_
+    uint8_t text_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+    uint8_t bar_color = vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
+    uint8_t warning_color = vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+
+    terminal_writestring_colored("Disk Usage\n", title_color);
+    terminal_writestring_colored("----------\n", title_color);
+
+    // Simulate disk partitions
+    struct
+    {
+        char *name;
+        int total_mb;
+        int used_mb;
+    } partitions[] = {
+        {"System (C:)", 4096, 2048},
+        {"Data (D:)", 8192, 1024},
+        {"Backup (E:)", 2048, 1536}};
+
+    for (int i = 0; i < 3; i++)
+    {
+        int usage_percent = (partitions[i].used_mb * 100) / partitions[i].total_mb;
+
+        // Display partition info
+        terminal_writestring_colored(partitions[i].name, text_color);
+        terminal_writestring(": ");
+
+        char used_str[16], total_str[16], percent_str[8];
+        itoa(partitions[i].used_mb, used_str, 10);
+        itoa(partitions[i].total_mb, total_str, 10);
+        itoa(usage_percent, percent_str, 10);
+
+        terminal_writestring(used_str);
+        terminal_writestring(" MB / ");
+        terminal_writestring(total_str);
+        terminal_writestring(" MB (");
+
+        // Color code based on usage
+        if (usage_percent < 70)
+        {
+            terminal_writestring_colored(percent_str, bar_color);
+        }
+        else
+        {
+            terminal_writestring_colored(percent_str, warning_color);
+        }
+
+        terminal_writestring("%)");
+        terminal_putchar('\n');
+
+        // Display usage bar
+        terminal_writestring("[");
+        int bar_length = 50;
+        int filled = (usage_percent * bar_length) / 100;
+
+        for (int j = 0; j < bar_length; j++)
+        {
+            if (j < filled)
+            {
+                if (usage_percent < 70)
+                {
+                    terminal_writestring_colored("|", bar_color);
+                }
+                else
+                {
+                    terminal_writestring_colored("|", warning_color);
+                }
+            }
+            else
+            {
+                terminal_writestring(" ");
+            }
+        }
+
+        terminal_writestring("]\n\n");
+    }
+
+    // Display overall statistics
+    terminal_writestring_colored("Total Storage: ", text_color);
+    terminal_writestring_colored("14336 MB\n", bar_color);
+
+    terminal_writestring_colored("Used Storage: ", text_color);
+    terminal_writestring_colored("4608 MB\n", bar_color);
+
+    terminal_writestring_colored("Available: ", text_color);
+    terminal_writestring_colored("9728 MB\n", bar_color);
+}
+
+void run_screensaver(void)
+{
+    terminal_clear_region(0, 0, VGA_WIDTH - 1, VGA_HEIGHT - 1);
+    terminal_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
+
+    // Display a simple bouncing text screensaver
+    char *message = "OSIRIS OS";
+    int message_length = strlen(message);
+    int x = 5, y = 5;
+    int dx = 1, dy = 1;
+    int iterations = 0;
+    uint8_t current_color = VGA_COLOR_LIGHT_BLUE;
+
+    terminal_writestring("Screensaver running. Press any key to exit...\n");
+    delay(1000);
+    terminal_clear_region(0, 0, VGA_WIDTH - 1, VGA_HEIGHT - 1);
+
+    while (iterations < 300)
+    {
+        // Check for keypress to exit
+        if (get_keyboard_input() != 0)
+        {
+            break;
+        }
+
+        // Clear previous text
+        terminal_clear_region(0, 0, VGA_WIDTH - 1, VGA_HEIGHT - 1);
+
+        // Draw text at current position
+        terminal_row = y;
+        terminal_column = x;
+        terminal_setcolor(vga_entry_color(current_color, VGA_COLOR_BLACK));
+        terminal_writestring(message);
+
+        // Update position
+        x += dx;
+        y += dy;
+
+        // Bounce off borders
+        if (x <= 0 || x >= VGA_WIDTH - message_length)
+        {
+            dx = -dx;
+            // Change color on bounce
+            current_color = (current_color + 1) % 16;
+            if (current_color == VGA_COLOR_BLACK)
+            {
+                current_color = VGA_COLOR_BLUE;
+            }
+        }
+
+        if (y <= 0 || y >= VGA_HEIGHT - 1)
+        {
+            dy = -dy;
+            // Change color on bounce
+            current_color = (current_color + 1) % 16;
+            if (current_color == VGA_COLOR_BLACK)
+            {
+                current_color = VGA_COLOR_BLUE;
+            }
+        }
+
+        // Delay for animation
+        delay(100);
+        iterations++;
+    }
+
+    // Restore screen
+    terminal_clear_region(0, 0, VGA_WIDTH - 1, VGA_HEIGHT - 1);
+    terminal_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
+    display_command_prompt();
+}
+
+void set_terminal_title(const char *title)
+{
+    // In a real system with a window manager, this would set the window title
+    // In our simple terminal, we'll just display a header
+    terminal_clear_region(0, 0, VGA_WIDTH - 1, 0);
+    terminal_row = 0;
+    terminal_column = 0;
+
+    // Center the title
+    int padding = (VGA_WIDTH - strlen(title)) / 2;
+    if (padding < 0)
+        padding = 0;
+
+    for (int i = 0; i < padding; i++)
+    {
+        terminal_putchar(' ');
+    }
+
+    terminal_setcolor(vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_LIGHT_CYAN));
+    terminal_writestring(title);
+    terminal_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
+
+    // Reset cursor position to current command line
+    terminal_row = VGA_HEIGHT - 1;
+    terminal_column = 0;
+    display_command_prompt();
+}
+
+void show_boot_sequence(void)
+{
+    // Initializing terminal
+    terminal_initialize();
+    terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
+
+    // Boot messages
+    terminal_writestring("OSIRIS Boot Sequence Initialized\n");
+    delay(500);
+
+    terminal_writestring("Testing memory...");
+    delay(700);
+    terminal_writestring(" OK\n");
+
+    terminal_writestring("Initializing kernel...");
+    delay(600);
+    terminal_writestring(" OK\n");
+
+    terminal_writestring("Detecting hardware...\n");
+    delay(400);
+
+    terminal_writestring("  CPU: x86-64 Compatible @ 3.2 GHz\n");
+    delay(300);
+
+    terminal_writestring("  Memory: 16384 KB Available\n");
+    delay(300);
+
+    terminal_writestring("  Storage: 16384 MB\n");
+    delay(300);
+
+    terminal_writestring("  Display: VGA Compatible 80x25\n");
+    delay(300);
+
+    terminal_writestring("  Keyboard: PS/2 Compatible\n");
+    delay(300);
+
+    terminal_writestring("Loading system modules: ");
+
+    const char *modules[] = {"fs", "mm", "sched", "net"};
+    for (int i = 0; i < 4; i++)
+    {
+        terminal_writestring(modules[i]);
+        terminal_writestring("... ");
+        delay(400);
+    }
+    terminal_writestring("done\n");
+    delay(500);
+
+    terminal_writestring("Mounting filesystems...");
+    delay(600);
+    terminal_writestring(" OK\n");
+
+    terminal_writestring("Starting system services...");
+    delay(800);
+    terminal_writestring(" OK\n");
+
+    // Progress bar
+    terminal_writestring("\nLoading OSIRIS Operating System: \n");
+    for (int i = 0; i <= 100; i += 10)
+    {
+        display_progress_bar(i, 100, 50);
+        delay(200);
+    }
+
+    terminal_writestring("\n\nBoot complete!\n");
+    delay(1000);
+
+    // Clear screen for main interface
+    terminal_initialize();
+}
+
+char get_keyboard_input(void)
+{
+    uint8_t status = inb(KEYBOARD_STATUS_PORT);
+
+    // Check if output buffer is full (ready to be read)
+    if (status & 0x01)
+    {
+        uint8_t keycode = inb(KEYBOARD_DATA_PORT);
+
+        // Handle special keys
+        if (keycode == KEY_SHIFT || keycode == KEY_SHIFT_R)
+        {
+            shift_pressed = true;
+            return 0;
+        }
+        else if (keycode == (KEY_SHIFT | 0x80) || keycode == (KEY_SHIFT_R | 0x80))
+        {
+            // Key released
+            shift_pressed = false;
+            return 0;
+        }
+        else if (keycode == KEY_CAPS_LOCK)
+        {
+            caps_lock = !caps_lock;
+            return 0;
+        }
+        else if (keycode == KEY_CTRL)
+        {
+            ctrl_pressed = true;
+            return 0;
+        }
+        else if (keycode == (KEY_CTRL | 0x80))
+        {
+            ctrl_pressed = false;
+            return 0;
+        }
+        else if (keycode == KEY_UP)
+        {
+            // Handle up arrow for command history
+            const char *previous = get_previous_command();
+            if (previous)
+            {
+                // Clear current line
+                while (command_length > 0)
+                {
+                    terminal_putchar('\b');
+                    terminal_putchar(' ');
+                    terminal_putchar('\b');
+                    command_length--;
+                }
+
+                // Display previous command
+                terminal_writestring(previous);
+                strcpy(command_buffer, previous);
+                command_length = strlen(previous);
+            }
+            return 0;
+        }
+        else if (keycode == KEY_DOWN)
+        {
+            // Handle down arrow for command history
+            const char *next = get_next_command();
+
+            // Clear current line
+            while (command_length > 0)
+            {
+                terminal_putchar('\b');
+                terminal_putchar(' ');
+                terminal_putchar('\b');
+                command_length--;
+            }
+
+            if (next)
+            {
+                // Display next command
+                terminal_writestring(next);
+                strcpy(command_buffer, next);
+                command_length = strlen(next);
+            }
+            return 0;
+        }
+        else if (keycode == KEY_LEFT)
+        {
+            // Left arrow not implemented for cursor movement
+            return 0;
+        }
+        else if (keycode == KEY_RIGHT)
+        {
+            // Right arrow not implemented for cursor movement
+            return 0;
+        }
+        else if (keycode & 0x80)
+        {
+            // Key released event
+            return 0;
+        }
+        else
+        {
+            // Regular printable key
+            char c;
+            if (shift_pressed || caps_lock)
+            {
+                c = keyboard_map_shifted[keycode];
+            }
+            else
+            {
+                c = keyboard_map[keycode];
+            }
+
+            // Handle special control characters
+            if (ctrl_pressed && c >= 'a' && c <= 'z')
+            {
+                c = c - 'a' + 1; // Convert to CTRL+A through CTRL+Z
+            }
+
+            return c;
+        }
+    }
+
+    return 0; // No key pressed
+}
+
+system_info_t get_system_info(void)
+{
+    system_info_t info;
+
+    strcpy(info.os_name, "OSIRIS OS");
+    strcpy(info.os_version, "2.0");
+    strcpy(info.build_date, "May 15, 2025");
+    strcpy(info.kernel_version, "0.8.5");
+    strcpy(info.current_user, "admin");
+
+    // In a real OS, these would be obtained from the system
+    // Here we simulate reasonable values
+    info.uptime_seconds = 3600;           // 1 hour uptime
+    info.memory_total = 16 * 1024 * 1024; // 16 MB
+    info.memory_used = 4 * 1024 * 1024;   // 4 MB used
+    info.num_processes = 12;
+    info.num_files = 216;
+
+    return info;
+}
+
+void set_system_state(int state)
+{
+    system_state = state;
+}

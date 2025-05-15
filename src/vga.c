@@ -1,4 +1,6 @@
 #include "vga.h"
+#include "string.h"
+#include <stdbool.h>
 
 // VGA text buffer address
 static uint16_t *const VGA_MEMORY = (uint16_t *)0xB8000;
@@ -180,7 +182,6 @@ void display_progress_bar(int progress, int total, int width)
 
     // Print percentage
     char buffer[5];
-    extern char *itoa(int num, char *str, int base);
     itoa(progress * 100 / total, buffer, 10);
     terminal_putchar(' ');
     terminal_writestring(buffer);
@@ -222,7 +223,6 @@ void print_centered(const char *str, int row, uint8_t color)
     uint8_t old_color = terminal_color;
     terminal_setcolor(color);
 
-    extern size_t strlen(const char *str);
     int len = strlen(str);
     terminal_column = (VGA_WIDTH - len) / 2;
     terminal_row = row;
@@ -235,7 +235,6 @@ void print_centered(const char *str, int row, uint8_t color)
 // Print a fancy header
 void print_fancy_header(const char *title)
 {
-    extern size_t strlen(const char *str);
     int title_len = strlen(title);
     int padding = (VGA_WIDTH - title_len - 4) / 2;
     uint8_t header_color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE);

@@ -5,11 +5,11 @@ QEMU = qemu-system-x86_64
 CC = gcc
 LD = ld
 AS = nasm
-CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -m32 -g
+CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -m32 -g -I./src
 LDFLAGS = -T linker.ld -nostdlib -m elf_i386
 
 # Object files
-OBJS = boot.o kernel.o
+OBJS = boot.o kernel.o vga.o
 
 all: $(ISO)
 
@@ -20,6 +20,10 @@ boot.o: boot/boot.asm
 # Compile the kernel C file
 kernel.o: src/kernel.c
 	$(CC) $(CFLAGS) -c src/kernel.c -o kernel.o
+
+# Compile the VGA source file
+vga.o: src/vga.c
+	$(CC) $(CFLAGS) -c src/vga.c -o vga.o
 
 # Create the binary from object files
 kernel.bin: $(OBJS)

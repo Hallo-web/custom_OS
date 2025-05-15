@@ -66,13 +66,13 @@ void draw_box(int x1, int y1, int x2, int y2, uint8_t color);
 void terminal_writestring_colored(const char *data, uint8_t color);
 void printf(const char *format, ...);
 
-// Create a VGA entry color
+// Create a VGA entry color (moved from vga.h)
 static uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
     return fg | bg << 4;
 }
 
-// Create a VGA entry (character + color)
+// Create a VGA entry (character + color) (moved from vga.h)
 static uint16_t vga_entry(unsigned char c, uint8_t color)
 {
     return (uint16_t)c | (uint16_t)color << 8;
@@ -773,81 +773,40 @@ void outb(uint16_t port, uint8_t val)
     asm volatile("outb %0, %1" : : "a"(val), "dN"(port));
 }
 
-// Keyboard mapping for US QWERTY layout
-// Normal keys (unshifted)
-const char keyboard_map[128] = {
-    0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
-    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
-    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
-    0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
-    '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-// Shifted keys
-const char keyboard_map_shifted[128] = {
-    0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
-    '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',
-    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
-    0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0,
-    '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-// Special key codes
-#define KEY_SHIFT 42
-#define KEY_SHIFT_R 54
-#define KEY_CTRL 29
-#define KEY_ALT 56
-#define KEY_CAPS_LOCK 58
-#define KEY_F1 59
-#define KEY_F2 60
-#define KEY_F3 61
-#define KEY_F4 62
-#define KEY_UP 72
-#define KEY_DOWN 80
-#define KEY_LEFT 75
-#define KEY_RIGHT 77
-#define KEY_HOME 71
-#define KEY_END 79
-#define KEY_PGUP 73
-#define KEY_PGDN 81
-#define KEY_DELETE 83
-#define KEY_BACKSPACE 14
-#define KEY_ENTER 28
-#define KEY_ESC 1
-
-// Process keyboard input with improved key handling
-char get_keyboard_input()
+// The kernel main function, called from boot.asm
+void kernel_main(void)
 {
-    if ((inb(KEYBOARD_STATUS_PORT) & 1) != 0)
+    // Initialize terminal
+    terminal_initialize();
+
+    // Display boot sequence
+    show_boot_sequence();
+
+    // Draw the OSIRIS logo
+    draw_logo();
+
+    // Welcome message
+    terminal_row = 16;
+    terminal_column = 0;
+
+    uint8_t welcome_color = vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK);
+    terminal_setcolor(welcome_color);
+
+    print_centered("Welcome to OSIRIS OS!", terminal_row, welcome_color);
+    terminal_row += 2;
+
+    uint8_t text_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+    terminal_setcolor(text_color);
+
+    print_centered("System loaded successfully.", terminal_row, text_color);
+    terminal_row += 1;
+
+    print_centered("Press any key to continue...", terminal_row, text_color);
+
+    // Infinite loop - in a real OS, we would handle keyboard input here
+    while (1)
     {
-        uint8_t scancode = inb(KEYBOARD_DATA_PORT);
-
-        // Check for key release
-        if (scancode & 0x80)
-        {
-            scancode &= 0x7F; // Clear the top bit
-
-            // Handle modifier key releases
-            if (scancode == KEY_SHIFT || scancode == KEY_SHIFT_R)
-            {
-                shift_pressed = false;
-            }
-
-            return 0; // We don't process key releases further
-        }
-
-        // Handle special keys
-        switch (scancode)
-        {
-        case KEY_SHIFT:
-        case KEY_SHIFT_R:
-            shift_pressed = true;
-            return 0;
-
-        case KEY_CAPS_LOCK:
-            caps_lock = !caps_lock;
-            return 0;
-
-        case KEY_F1:
-            return 0; // Special handling for function keys
-
-        case KEY_ESC:
-            return 27; // ESC character
+        // Halt the CPU until the next interrupt
+        asm volatile("hlt");
+    }
+}

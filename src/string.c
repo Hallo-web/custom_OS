@@ -1,7 +1,4 @@
 #include "string.h"
-#include <stddef.h>
-#include <stdarg.h>
-#include "vga.h" // For terminal output functions
 
 // String comparison
 int strcmp(const char *s1, const char *s2)
@@ -181,77 +178,4 @@ int atoi(const char *str)
     }
 
     return sign * result;
-}
-
-// Simple printf-like function
-void printf(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-
-    char buffer[64];
-
-    for (int i = 0; format[i] != '\0'; i++)
-    {
-        if (format[i] == '%' && format[i + 1] != '\0')
-        {
-            i++;
-            switch (format[i])
-            {
-            case 'd':
-            {
-                // Integer
-                int val = va_arg(args, int);
-                itoa(val, buffer, 10);
-                terminal_writestring(buffer);
-                break;
-            }
-            case 'x':
-            {
-                // Hexadecimal
-                int val = va_arg(args, int);
-                itoa(val, buffer, 16);
-                terminal_writestring(buffer);
-                break;
-            }
-            case 'c':
-            {
-                // Character
-                int c = va_arg(args, int);
-                terminal_putchar((char)c);
-                break;
-            }
-            case 's':
-            {
-                // String
-                char *s = va_arg(args, char *);
-                if (s == NULL)
-                {
-                    terminal_writestring("(null)");
-                }
-                else
-                {
-                    terminal_writestring(s);
-                }
-                break;
-            }
-            case '%':
-            {
-                // Literal %
-                terminal_putchar('%');
-                break;
-            }
-            default:
-                terminal_putchar('%');
-                terminal_putchar(format[i]);
-                break;
-            }
-        }
-        else
-        {
-            terminal_putchar(format[i]);
-        }
-    }
-
-    va_end(args);
 }

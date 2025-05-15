@@ -46,12 +46,6 @@ void terminal_writestring(const char *data);
 // Write a string with a specific color
 void terminal_writestring_colored(const char *data, uint8_t color);
 
-// Create a VGA entry color
-uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg);
-
-// Create a VGA entry (character + color)
-uint16_t vga_entry(unsigned char c, uint8_t color);
-
 // Clear a specific line
 void clear_line(int line);
 
